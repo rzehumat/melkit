@@ -1,5 +1,5 @@
 '''
-Loading PTF files
+PTF files manipulation
 '''
 
 from melkit.ptf import PTF, compare_ptf
