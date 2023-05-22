@@ -14,9 +14,9 @@ import pandas as pd
 
 class PTF:
     '''
-    PTF file tool - extract, plot and compare data in PTF files
+    PTF tool - extract, plot and compare data in PTF files
 
-    :param path: a path to Melcor PTF file to be processed
+    :param path: a path to a MELCOR PTF file to be processed
     '''
 
     def __init__(self, path: Union[str, os.PathLike]):
@@ -38,7 +38,7 @@ class PTF:
     def __str__(self) -> str:
         return f"PTF file titled {self.title}"
 
-    def to_DataFrame(self, variables: List[str]) -> pd.DataFrame:
+    def to_dataframe(self, variables: List[str]) -> pd.DataFrame:
         """ Extracts given variables into pandas DataFrame
         each variable is 1 column in the DataFrame
         :param variables: a list of variables to be extracted; note that extracting large amount of variables might be I/O expensive
@@ -48,7 +48,7 @@ class PTF:
         if not desired_cols.issubset(available_cols):
             raise KeyError(f"Desired columns {desired_cols - available_cols} "
                            f"are not available in PTF {self.title}")
-        time, data, units, _, _ = self.MCRBin(variables)
+        time, data, _, _, _ = self.MCRBin(variables)
         df = pd.DataFrame(
             index=time,
             columns=variables,
@@ -65,7 +65,7 @@ class PTF:
         :param variables: list of variables to be plotted (in a single figure)
         :param output_path: relative path where the figure should be saved; if not provided, figure is not saved (only shows)
         '''
-        df = self.to_DataFrame(variables)
+        df = self.to_dataframe(variables)
         ax = df.plot(**kwargs)
         fig = ax.get_figure()
         fig.show()
@@ -314,12 +314,13 @@ def compare_ptf(ptf_lst: List[PTF], variables: List[str],
     Compare data from PTF files by plotting variables
 
     :param ptf_lst: list of PTF objects to be compared
-    :param variables: list of varibles to be compared. KeyError is raised is any of variables is not present in any of the files
-    :param save_dir: relative path to directory to save the figures - if not provided, figures are not saved
-    :param show: if True, figures will show
-    :param ret_df: if True, function returns pandas DataFrame with all variables from all files
+    :param variables: list of variables to be compared
+    :param save_dir: relative path to directory to save the figures (if not provided, figures are not saved)
+    :param show: if True, figures will be shown
+    :param ret_df: if True, the function returns a pandas DataFrame with all variables from all files
+    :raises KeyError: if any variable is not present in any of the files
     '''
-    df_list = [ptf.to_DataFrame(variables) for ptf in ptf_lst]
+    df_list = [ptf.to_dataframe(variables) for ptf in ptf_lst]
     titles = [ptf.title for ptf in ptf_lst]
     for variable in variables:
         var_list = [df[variable] for df in df_list]
@@ -334,6 +335,5 @@ def compare_ptf(ptf_lst: List[PTF], variables: List[str],
                 os.makedirs(save_dir)
             fig.savefig(Path(save_dir, f"{variable}.png"))
     if ret_df:
-        # TODO: provide some distinctive column names to avoid non-unique
-        #       DataFrame column names
+        # TODO: provide some distinctive column names to avoid non-unique DataFrame column names
         return pd.concat(df_list, axis="columns")

@@ -18,7 +18,7 @@
       ~PTF.MCRBin
       ~PTF.__init__
       ~PTF.plot
-      ~PTF.to_DataFrame
+      ~PTF.to_dataframe
    
    
 
